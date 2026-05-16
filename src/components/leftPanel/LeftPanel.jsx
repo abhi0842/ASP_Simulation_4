@@ -6,6 +6,7 @@ import { EcgNoisy } from "../graph/EcgNoisy.jsx";
 import { SimulationContext } from "../../context/SimulationContext.jsx";
 import { EcgUnfilteredPSD } from "../graph/EcgUnfilteredPSD.jsx";
 import { EcgFilteredPSD } from "../graph/EcgFilteredPSD.jsx";
+import { KalmanLearningPanel } from "../kalman/KalmanLearningPanel.jsx";
 
 export const LeftPanel = () => {
   const { generateECG, applyNoiseTrigger, filteredECG, applypsdTrigger } =
@@ -14,17 +15,15 @@ export const LeftPanel = () => {
     <div className={styles.leftPanelContainer}>
       <div className={styles.container}>
         <div className={styles.psdContainer}>
-        {applypsdTrigger && <EcgUnfilteredPSD />}
-        {applypsdTrigger && <EcgFilteredPSD />}
+          {applypsdTrigger && <EcgUnfilteredPSD />}
+          {applypsdTrigger && <EcgFilteredPSD />}
         </div>
         <div>{generateECG && <EcgUnfilter />}</div>
         <div>{applyNoiseTrigger && <EcgNoisy />}</div>
         <div>{filteredECG && <EcgFilter />}</div>
-        {/* <div className={styles.psdContainer}>
-        {applypsdTrigger && <EcgUnfilteredPSD />}
-        {applypsdTrigger && <EcgFilteredPSD />}
-        </div> */}
+        {generateECG && <KalmanLearningPanel />}
       </div>
     </div>
   );
 };
+

@@ -156,6 +156,97 @@ input[type="number"]:focus {
     gap: 10px;
 }
 
+/* Kalman filter controls */
+.kalmanHint {
+    font-size: 0.82rem;
+    color: #444;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.sliderBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.sliderHeader {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+.valueBadge {
+    font-size: 0.72rem;
+    background: #eeece8;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.colorDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.rangeSlider {
+    width: 100%;
+    accent-color: rgb(29 116 128);
+}
+
+.sliderSubtext {
+    font-size: 0.78rem;
+    color: #555;
+}
+
+.scenarioTitle {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: 8px 0 0;
+    color: rgb(29 116 128);
+}
+
+.scenarioGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.scenarioGrid button {
+    margin-top: 0;
+    width: 100%;
+    font-size: 0.72rem;
+    padding: 8px 6px;
+    background: #f5f5f2;
+    color: #1a1a1a;
+    border: 1px solid #ccc;
+}
+
+.scenarioGrid button:hover {
+    background: #e8f4f6;
+    border-color: rgb(29 116 128);
+}
+
+.scenarioNote {
+    font-size: 0.8rem;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin: 8px 0 0;
+    border-left: 4px solid;
+    background: #f8f8f6;
+}
+
+.scenario_green { border-color: #639922; }
+.scenario_red { border-color: #e24b4a; }
+.scenario_yellow { border-color: #ba7517; }
+.scenario_blue { border-color: #378add; }
+
 @media (max-width: 768px) {
     .rightPanelContainer {
         width: 100%;

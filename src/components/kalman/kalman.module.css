@@ -1,0 +1,395 @@
+.kalmanPanel {
+  width: 100%;
+  margin: 24px 0 32px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #dadada;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(94, 94, 94, 0.15);
+}
+
+.tabBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #e8e8e4;
+  padding-bottom: 8px;
+}
+
+.tabBtn {
+  padding: 8px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #f5f5f2;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.tabBtnActive {
+  background: #1a5376;
+  color: #fff;
+  border-color: #1a5376;
+}
+
+.moduleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.theoryBtn {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #1a5376;
+  background: #fff;
+  color: #1a5376;
+  cursor: pointer;
+}
+
+.twoCol {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 960px) {
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+}
+
+.controlsCol {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sliderLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.sliderLabel > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.valueBadge {
+  font-size: 0.75rem;
+  background: #eeece8;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.colorDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.hintText {
+  font-size: 0.8rem;
+  color: #555;
+  margin: 0;
+}
+
+.scenarioGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.scenarioGrid button {
+  font-size: 0.75rem;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #fafaf8;
+  cursor: pointer;
+}
+
+.scenarioGrid button:hover {
+  background: #eef6fc;
+}
+
+.scenarioCard {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  border-left: 4px solid;
+  background: #f8f8f6;
+}
+
+.scenarioCardGreen { border-color: #639922; }
+.scenarioCardRed { border-color: #e24b4a; }
+.scenarioCardYellow { border-color: #ba7517; }
+.scenarioCardBlue { border-color: #378add; }
+
+.chartsCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.chartBox {
+  height: 280px;
+  position: relative;
+}
+
+.chartBoxSmall {
+  height: 200px;
+  position: relative;
+}
+
+.metricsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .metricsRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.metricCard {
+  background: #f0f0ec;
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.metricLabel {
+  font-size: 14px;
+  color: #555;
+  margin: 0 0 4px;
+}
+
+.metricValue {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.stateCards {
+  display: flex;
+  gap: 12px;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+
+.stateCard {
+  flex: 1;
+  min-width: 140px;
+  background: #f5f5f2;
+  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid #e0e0dc;
+}
+
+.stateCardLabel {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0 0 4px;
+}
+
+.stateCardValue {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  font-family: "Consolas", monospace;
+}
+
+.fMatrix {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  gap: 4px 16px;
+  font-family: "Consolas", monospace;
+  font-size: 1rem;
+  padding: 12px 20px;
+  background: #f8f8f6;
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+.fMatrixCell {
+  text-align: center;
+  min-width: 48px;
+}
+
+.fMatrixBracket {
+  font-size: 1.5rem;
+  color: #888780;
+}
+
+.fsSelect {
+  margin: 8px 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.predictBox {
+  font-family: "Consolas", monospace;
+  font-size: 0.9rem;
+  background: #f8f8f6;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+.predictLine {
+  opacity: 0;
+  animation: fadeInLine 0.3s forwards;
+}
+
+@keyframes fadeInLine {
+  to { opacity: 1; }
+}
+
+.primaryBtn {
+  padding: 8px 16px;
+  background: #1a5376;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.stepDetail {
+  font-family: "Consolas", monospace;
+  font-size: 0.85rem;
+  background: #f8f8f6;
+  padding: 14px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  margin-top: 12px;
+}
+
+.sensitivityText {
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+.highlight {
+  font-weight: 700;
+}
+
+.raceBadges {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0;
+  font-size: 0.9rem;
+}
+
+.raceSummary {
+  padding: 12px;
+  background: #eef6fc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.compareTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 12px;
+}
+
+.compareTable th,
+.compareTable td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.compareTable th {
+  background: #f0f0ec;
+}
+
+.insightCard {
+  margin-top: 16px;
+  padding: 14px;
+  background: #f0f7ff;
+  border-left: 4px solid #378add;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modalContent {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 520px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: auto;
+}
+
+.theoryBody {
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.modalClose {
+  margin-top: 16px;
+  padding: 8px 20px;
+  background: #1a5376;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.emptyHint {
+  padding: 24px;
+  text-align: center;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.recoveryChart {
+  height: 180px;
+  margin-top: 16px;
+}

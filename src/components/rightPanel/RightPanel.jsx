@@ -2,6 +2,7 @@ import { useContext, useState, useEffect } from "react";
 import { SimulationContext } from "../../context/SimulationContext";
 import styles from "./rightPanel.module.css";
 import Swal from "sweetalert2";
+import { KalmanControls } from "./KalmanControls.jsx";
 
 export const RightPanel = () => {
   const {
@@ -115,7 +116,7 @@ export const RightPanel = () => {
   return (
     <div className={styles.rightPanelContainer}>
       <div className={styles.right}>
-        <h2>ECG Signal & Filter Controls</h2>
+        <h2>ECG, Kalman & Filter Controls</h2>
 
         <div className={styles.box}>
           <h3>Signal Setup</h3>
@@ -193,6 +194,9 @@ export const RightPanel = () => {
             <button onClick={() => noiseTrigger()}>Add Noise to Signal</button>
           </div>
         </div>
+
+        <KalmanControls />
+
         {/* adaptive filter input */}
         <div className={styles.box}>
           <h3>Adaptive Filter (NLMS / LMS/ RLS)</h3>
