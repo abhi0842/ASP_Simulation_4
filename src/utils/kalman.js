@@ -94,8 +94,8 @@ export function runKalmanFilter(
   };
 }
 
-/** Steady-state P[0,0] via DARE (math.js, 80 iterations). */
-export function solveDARE_iterative(F, H, Q, R, maxIter = 80) {
+/** Steady-state P[0,0] via DARE (math.js, 500 iterations). */
+export function solveDARE_iterative(F, H, Q, R, maxIter = 500) {
   let P = identity(2);
   const Rm = matrix([[R]]);
 
@@ -110,7 +110,7 @@ export function solveDARE_iterative(F, H, Q, R, maxIter = 80) {
   return P.get([0, 0]);
 }
 
-export function solvePInfinity(dt, Q_diag, R, maxIter = 80) {
+export function solvePInfinity(dt, Q_diag, R, maxIter = 500) {
   const F = matrix([
     [1, dt],
     [0, 1],

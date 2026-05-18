@@ -375,7 +375,8 @@
 .insightCard {
   margin-top: 16px;
   padding: 14px;
-  background: #f0f7ff;
+  background: #d3e2f0;
+  color: #333;
   border-left: 4px solid #378add;
   border-radius: 8px;
   font-size: 0.9rem;

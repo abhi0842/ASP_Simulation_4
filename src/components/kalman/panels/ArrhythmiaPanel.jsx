@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState, useCallback, useTransition } from "react";
+import { useContext, useMemo, useState, useCallback } from "react";
 import { SimulationContext } from "../../../context/SimulationContext";
 import {
   runKalmanFilter,
@@ -18,12 +18,10 @@ import { COLORS } from "../kalmanColors";
 import styles from "../kalman.module.css";
 
 const EXPERTS = [
-  { name: "Expert A (High Q)", Q: 0.05, R: 0.01, P0: 50, color: COLORS.green },
+  { name: "Expert A (Adaptive)", Q: 0.05, R: 0.01, P0: 50, color: COLORS.green },
   { name: "Expert B (Rigid)", Q: 0.0001, R: 0.01, P0: 0.01, color: COLORS.red },
   { name: "Expert C (Warm start)", Q: 0.01, R: 0.01, P0: null, color: COLORS.blue },
 ];
-
-const FILTER_OPTS = { includeTraces: false };
 
 function arrhythmiaLinesPlugin(onsetTime, offsetTime) {
   return {
@@ -56,42 +54,11 @@ function arrhythmiaLinesPlugin(onsetTime, offsetTime) {
   };
 }
 
-function runArrhythmiaFilters(measurements, truth, onsetIdx, dt, kalmanParams) {
-  const P_inf = solvePInfinity(dt, kalmanParams.Q_diag, kalmanParams.R);
-  const { x0hat, P0_alpha, Q_diag, R } = kalmanParams;
-
-  const student = runKalmanFilter(
-    measurements,
-    dt,
-    x0hat,
-    P0_alpha,
-    Q_diag,
-    R,
-    FILTER_OPTS
-  );
-
-  const experts = EXPERTS.map((ex) => {
-    const P0 = ex.P0 === null ? P_inf : ex.P0;
-    const res = runKalmanFilter(measurements, dt, 0, P0, ex.Q, ex.R, FILTER_OPTS);
-    return {
-      ...ex,
-      filtered: res.xFiltered,
-      recovery: samplesToRelock(res.xFiltered, truth, onsetIdx),
-    };
-  });
-
-  return {
-    student: student.xFiltered,
-    studentRecovery: samplesToRelock(student.xFiltered, truth, onsetIdx),
-    experts,
-  };
-}
-
-export function ArrhythmiaPanel({ cleanSignal = [] }) {
+export function ArrhythmiaPanel({ cleanSignal = [], dt = 0.002 }) {
   const { originalFs, kalmanParams } = useContext(SimulationContext);
   const [theoryOpen, setTheoryOpen] = useState(false);
-  const [filterOutputs, setFilterOutputs] = useState(null);
-  const [isPending, startTransition] = useTransition();
+  const [studentRun, setStudentRun] = useState(false);
+  const [measurements, setMeasurements] = useState([]);
 
   const sequence = useMemo(() => {
     if (!cleanSignal.length) return null;
@@ -99,24 +66,42 @@ export function ArrhythmiaPanel({ cleanSignal = [] }) {
     return generateArrhythmiaSequence(template, originalFs);
   }, [cleanSignal, originalFs]);
 
-  const dt = sequence ? 1 / sequence.fs : 1 / originalFs;
-
   const runStudentFilter = () => {
     if (!sequence) return;
-    const measurements = addGaussianNoise(sequence.truth, kalmanParams.R);
-    const { truth, onsetIdx } = sequence;
-
-    startTransition(() => {
-      const outputs = runArrhythmiaFilters(
-        measurements,
-        truth,
-        onsetIdx,
-        dt,
-        kalmanParams
-      );
-      setFilterOutputs(outputs);
-    });
+    setMeasurements(addGaussianNoise(sequence.truth, kalmanParams.R));
+    setStudentRun(true);
   };
+
+  const filterOutputs = useMemo(() => {
+    if (!sequence || !studentRun || !measurements.length) return null;
+    const { truth, onsetIdx } = sequence;
+    const P_inf = solvePInfinity(dt, kalmanParams.Q_diag, kalmanParams.R);
+
+    const student = runKalmanFilter(
+      measurements,
+      dt,
+      kalmanParams.x0hat,
+      kalmanParams.P0_alpha,
+      kalmanParams.Q_diag,
+      kalmanParams.R
+    );
+
+    const experts = EXPERTS.map((ex) => {
+      const P0 = ex.P0 === null ? P_inf : ex.P0;
+      const res = runKalmanFilter(measurements, dt, 0, P0, ex.Q, ex.R);
+      return {
+        ...ex,
+        filtered: res.xFiltered,
+        recovery: samplesToRelock(res.xFiltered, truth, onsetIdx),
+      };
+    });
+
+    return {
+      student: student.xFiltered,
+      studentRecovery: samplesToRelock(student.xFiltered, truth, onsetIdx),
+      experts,
+    };
+  }, [sequence, measurements, studentRun, kalmanParams, dt]);
 
   const onsetTime = sequence?.times[sequence.onsetIdx];
   const offsetTime = sequence?.times[sequence.offsetIdx];
@@ -160,7 +145,6 @@ export function ArrhythmiaPanel({ cleanSignal = [] }) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: false,
         plugins: {
           title: {
             display: true,
@@ -204,7 +188,6 @@ export function ArrhythmiaPanel({ cleanSignal = [] }) {
         indexAxis: "y",
         responsive: true,
         maintainAspectRatio: false,
-        animation: false,
         plugins: {
           title: {
             display: true,
@@ -248,13 +231,8 @@ export function ArrhythmiaPanel({ cleanSignal = [] }) {
         BPM recovery. Set Kalman parameters in the right panel, then run.
       </p>
 
-      <button
-        type="button"
-        className={styles.primaryBtn}
-        onClick={runStudentFilter}
-        disabled={isPending}
-      >
-        {isPending ? "Running filter…" : "Run My Filter"}
+      <button type="button" className={styles.primaryBtn} onClick={runStudentFilter}>
+        Run My Filter
       </button>
 
       <div className={styles.chartBox}>
@@ -267,7 +245,7 @@ export function ArrhythmiaPanel({ cleanSignal = [] }) {
         </div>
       )}
 
-      {filterOutputs && (
+      {studentRun && (
         <div className={styles.insightCard}>
           Expert A recovers fastest because large Q tells the filter to expect
           rapid signal changes. Expert B is slowest — rigid low Q assumes the
