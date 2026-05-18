@@ -1,15 +1,13 @@
 import { useContext } from "react";
 import styles from "./leftPanel.module.css";
 import { EcgUnfilter } from "../graph/EcgUnfilter.jsx";
-import { EcgFilter } from "../graph/EcgFilter.jsx";
 import { EcgNoisy } from "../graph/EcgNoisy.jsx";
 import { SimulationContext } from "../../context/SimulationContext.jsx";
 import { EcgUnfilteredPSD } from "../graph/EcgUnfilteredPSD.jsx";
-import { EcgFilteredPSD } from "../graph/EcgFilteredPSD.jsx";
 import { KalmanLearningPanel } from "../kalman/KalmanLearningPanel.jsx";
 
 export const LeftPanel = () => {
-  const { generateECG, applyNoiseTrigger, filteredECG, applypsdTrigger } =
+  const { generateECG, applyNoiseTrigger, applypsdTrigger } =
     useContext(SimulationContext);
 
   return (
@@ -19,12 +17,10 @@ export const LeftPanel = () => {
           {applypsdTrigger && (
             <div className={styles.psdContainer}>
               <EcgUnfilteredPSD />
-              {filteredECG && <EcgFilteredPSD />}
             </div>
           )}
           {generateECG && <EcgUnfilter />}
           {applyNoiseTrigger && <EcgNoisy />}
-          {filteredECG && <EcgFilter />}
         </div>
         {generateECG && <KalmanLearningPanel />}
       </div>

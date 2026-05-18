@@ -11,17 +11,14 @@ export const RightPanel = () => {
     originalFs,
     setGenerateECG,
     setApplyNoiseTrigger,
-    config,
-    setConfig,
-    setFilteredECG,
     noise,
     setNoise,
     csvFilePath,
     prevPathRef,
     setCsvFilePath,
     generateECG,
+    applyNoiseTrigger,
     setApplypsdTrigger,
-    setFilteredSamples,
   } = useContext(SimulationContext);
 
   const runPsd = () => {
@@ -33,25 +30,14 @@ export const RightPanel = () => {
       });
       return;
     }
-    setApplypsdTrigger(true);
-  };
-
-  const runCalculateFiltered = () => {
-    if (!generateECG) {
+    if (!applyNoiseTrigger) {
       Swal.fire({
         icon: "info",
-        title: "Oops...",
-        text: "Please generate ECG signal first!",
+        title: "Add noise first",
+        text: "Apply noise to the signal before computing PSD.",
       });
       return;
     }
-    setConfig({
-      ...config,
-      filterType: "NLMS",
-      filterOrder: 32,
-      stepSize: 0.1,
-    });
-    setFilteredECG(true);
     setApplypsdTrigger(true);
   };
 
@@ -82,24 +68,15 @@ export const RightPanel = () => {
   useEffect(() => {
     if (prevPathRef.current !== csvFilePath) {
       setApplyNoiseTrigger(false);
-      setFilteredECG(false);
       setApplypsdTrigger(false);
-      setFilteredSamples([]);
       prevPathRef.current = csvFilePath;
     }
-  }, [
-    csvFilePath,
-    prevPathRef,
-    setApplyNoiseTrigger,
-    setFilteredECG,
-    setApplypsdTrigger,
-    setFilteredSamples,
-  ]);
+  }, [csvFilePath, prevPathRef, setApplyNoiseTrigger, setApplypsdTrigger]);
 
   return (
     <div className={styles.rightPanelContainer}>
       <div className={styles.right}>
-        <h2>ECG, Kalman & Filter Controls</h2>
+        <h2>ECG & Kalman Controls</h2>
 
         <div className={styles.box}>
           <h3>Signal Setup</h3>
@@ -181,16 +158,11 @@ export const RightPanel = () => {
         <div className={styles.box}>
           <h3>PSD Analysis</h3>
           <p className={styles.kalmanHint}>
-            Compute power spectral density of the noisy and filtered signals.
+            Power spectral density of the noisy ECG (after adding noise).
           </p>
-          <div className={styles.psdContainer}>
-            <button type="button" onClick={runPsd}>
-              Compute PSD
-            </button>
-            <button type="button" onClick={runCalculateFiltered}>
-              Calculate Filtered PSD
-            </button>
-          </div>
+          <button type="button" onClick={runPsd}>
+            Compute PSD
+          </button>
         </div>
       </div>
     </div>

@@ -4,46 +4,23 @@ import { createContext, useCallback, useEffect, useRef, useState } from "react";
 export const SimulationContext = createContext();
 
 export const SimulationProvider = ({ children }) => {
-  // Time window shown in graphs (seconds)
   const [time, setTime] = useState(5);
-  // Estimated sampling frequency (Hz)
   const [originalFs, setOriginalFs] = useState(500);
 
-  // ECG signals
-  const [rawSamples, setRawSamples] = useState([]); // array of { x: seconds, y: raw ECG }
-  const [noisySamples, setNoisySamples] = useState([]); // array of { x: seconds, y: noisy ECG }
-  const [cleanSignal, setCleanSignal] = useState([]); // numeric array reference ECG
-  const [filteredSamples, setFilteredSamples] = useState([]); // array of { x, y } adaptive-filter output
- 
-  // Adaptive filter params
-  const [config, setConfig] = useState({
-    filterType: "NLMS", // "NLMS" or "RLS"
-    filterOrder: 32, // M
-    stepSize: 0.1, // mu
-    forgettingFactor: 0.99, // lambda
-    regularization: 0.01, // delta
-  });
+  const [rawSamples, setRawSamples] = useState([]);
+  const [noisySamples, setNoisySamples] = useState([]);
+  const [cleanSignal, setCleanSignal] = useState([]);
 
-  const [metrics, setMetrics] = useState({
-    algorithm: "NLMS",
-    order: 32,
-    mse: "0.000000",
-  });
-
-  // UI triggers (expected by components)
   const [generateECG, setGenerateECG] = useState(false);
   const [applyNoiseTrigger, setApplyNoiseTrigger] = useState(false);
-  const [filteredECG, setFilteredECG] = useState(false);
   const [applypsdTrigger, setApplypsdTrigger] = useState(false);
 
-  // Noise toggles (expected by EcgNoisy)
   const [noise, setNoise] = useState({
     baseline: false,
     powerline: false,
     emg: false,
   });
 
-  // ECG dataset selection (use Vite base URL so hosted base path works)
   const [csvFilePath, setCsvFilePath] = useState(() => {
     const base = import.meta.env.BASE_URL || "/";
     const normalizedBase = base.endsWith("/") ? base : base + "/";
@@ -51,11 +28,9 @@ export const SimulationProvider = ({ children }) => {
   });
   const prevPathRef = useRef(csvFilePath);
 
-  // Instruction panel state / button ref used in Home.jsx
   const [showInstruction, setShowInstruction] = useState(false);
   const buttonRef = useRef(null);
 
-  // Kalman learning modules (shared across tabs)
   const [kalmanParams, setKalmanParams] = useState({
     x0hat: 0,
     P0_alpha: 1,
@@ -79,7 +54,6 @@ export const SimulationProvider = ({ children }) => {
       (h) => h === "ECG_I_filtered" || h.includes("ECG_I_filtered")
     );
 
-    // Fallback to "first 3 columns" if headers don't match expected names
     const resolvedTimeIdx = timeIdx >= 0 ? timeIdx : 0;
     const resolvedRawIdx = rawIdx >= 0 ? rawIdx : 1;
     const resolvedCleanIdx = cleanIdx >= 0 ? cleanIdx : 2;
@@ -101,7 +75,6 @@ export const SimulationProvider = ({ children }) => {
 
     if (points.length < 2) return null;
 
-    // Estimate sampling rate from x spacing (seconds)
     let dtSum = 0;
     let dtCount = 0;
     for (let i = 1; i < Math.min(times.length, 200); i++) {
@@ -120,7 +93,6 @@ export const SimulationProvider = ({ children }) => {
     try {
       setRawSamples([]);
       setNoisySamples([]);
-      setFilteredSamples([]);
       setCleanSignal([]);
 
       const res = await fetch(csvFilePath);
@@ -133,15 +105,12 @@ export const SimulationProvider = ({ children }) => {
       setCleanSignal(parsed.clean);
       setOriginalFs(parsed.fs);
 
-      // Reset triggers for a fresh run
       setApplyNoiseTrigger(false);
-      setFilteredECG(false);
       setApplypsdTrigger(false);
-      setMetrics({ algorithm: config.filterType, order: config.filterOrder, mse: "0.000000" });
-    } catch (e) {
-      console.error(e);
+    } catch {
+      /* load failed — UI shows empty state */
     }
-  }, [csvFilePath, parseCsvECG, config.filterType, config.filterOrder]);
+  }, [csvFilePath, parseCsvECG]);
 
   useEffect(() => {
     if (!generateECG) return;
@@ -155,55 +124,30 @@ export const SimulationProvider = ({ children }) => {
   return (
     <SimulationContext.Provider
       value={{
-        // graph time controls
         time,
         setTime,
         originalFs,
         setOriginalFs,
-
-        // signals
         rawSamples,
         setRawSamples,
         noisySamples,
         setNoisySamples,
         cleanSignal,
         setCleanSignal,
-        filteredSamples,
-        setFilteredSamples,
-
-        // triggers
         generateECG,
         setGenerateECG,
         applyNoiseTrigger,
         setApplyNoiseTrigger,
-        filteredECG,
-        setFilteredECG,
         applypsdTrigger,
         setApplypsdTrigger,
-
-        // noise toggles
         noise,
         setNoise,
-
-        // dataset selection
         csvFilePath,
         setCsvFilePath,
         prevPathRef,
-
-        // adaptive config
-        config,
-        setConfig,
-
-        // metrics
-        metrics,
-        setMetrics,
-
-        // instruction UI controls
         showInstruction,
         setShowInstruction,
         buttonRef,
-
-        // Kalman modules
         kalmanParams,
         setKalmanParams,
         lastKalmanSlider,

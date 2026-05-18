@@ -7,9 +7,18 @@ const fmt4 = (v) => (Number.isFinite(v) ? Number(v).toFixed(4) : "—");
 export { fmt4 };
 
 /**
- * Kalman filter: state [amplitude, slope], H = [1, 0].
+ * Fast 2-state Kalman filter (H = [1, 0]) using scalar math.
+ * Optional traces for learning modules; skip traces for arrhythmia / bulk runs.
  */
-export function runKalmanFilter(measurements, dt, x0hat, P0_alpha, Q_diag, R) {
+export function runKalmanFilter(
+  measurements,
+  dt,
+  x0hat,
+  P0_alpha,
+  Q_diag,
+  R,
+  { includeTraces = true } = {}
+) {
   const n = measurements.length;
   if (n === 0) {
     return {
@@ -22,51 +31,57 @@ export function runKalmanFilter(measurements, dt, x0hat, P0_alpha, Q_diag, R) {
     };
   }
 
-  const F = matrix([
-    [1, dt],
-    [0, 1],
-  ]);
-  const H = matrix([[1, 0]]);
-  const Q = matrix([
-    [Q_diag, 0],
-    [0, Q_diag * 0.1],
-  ]);
-  const P0 = multiply(P0_alpha, identity(2));
-  const Rm = matrix([[R]]);
+  const q0 = Q_diag;
+  const q1 = Q_diag * 0.1;
+  const dt2 = dt * dt;
 
-  const xFiltered = [];
-  const P_trace = [];
-  const P_pred_trace = [];
-  const K_trace = [];
-  const innovations = [];
-  const xStates = [];
+  let x0 = x0hat;
+  let x1 = 0;
+  let p00 = P0_alpha;
+  let p01 = 0;
+  let p10 = 0;
+  let p11 = P0_alpha;
 
-  let xHat = matrix([[x0hat], [0]]);
-  let P = P0;
+  const xFiltered = new Array(n);
+  const P_trace = includeTraces ? new Array(n) : [];
+  const P_pred_trace = includeTraces ? new Array(n) : [];
+  const K_trace = includeTraces ? new Array(n) : [];
+  const innovations = includeTraces ? new Array(n) : [];
+  const xStates = includeTraces ? new Array(n) : [];
 
   for (let k = 0; k < n; k++) {
-    const z = matrix([[measurements[k]]]);
+    const x0p = x0 + dt * x1;
+    const x1p = x1;
 
-    const xPred = multiply(F, xHat);
-    const PPred = add(multiply(multiply(F, P), transpose(F)), Q);
+    const p00p = p00 + dt * (p10 + p01) + dt2 * p11 + q0;
+    const p01p = p01 + dt * p11;
+    const p10p = p10 + dt * p11;
+    const p11p = p11 + q1;
 
-    P_pred_trace.push(PPred.get([0, 0]));
+    const z = measurements[k];
+    const innov = z - x0p;
+    const S = p00p + R;
+    const k0 = p00p / S;
+    const k1 = p10p / S;
 
-    const innov = subtract(z, multiply(H, xPred));
-    const S = add(multiply(multiply(H, PPred), transpose(H)), Rm);
-    const K = multiply(multiply(PPred, transpose(H)), inv(S));
+    x0 = x0p + k0 * innov;
+    x1 = x1p + k1 * innov;
 
-    xHat = add(xPred, multiply(K, innov));
-    const I = identity(2);
-    P = multiply(subtract(I, multiply(K, H)), PPred);
+    const sk0 = S * k0;
+    const sk1 = S * k1;
+    p00 = p00p - k0 * sk0;
+    p01 = p01p - k0 * sk1;
+    p10 = p10p - k1 * sk0;
+    p11 = p11p - k1 * sk1;
 
-    const amp = xHat.get([0, 0]);
-    const slope = xHat.get([1, 0]);
-    xFiltered.push(amp);
-    xStates.push([amp, slope]);
-    P_trace.push(P.get([0, 0]));
-    K_trace.push(K.get([0, 0]));
-    innovations.push(innov.get([0, 0]));
+    xFiltered[k] = x0;
+    if (includeTraces) {
+      P_pred_trace[k] = p00p;
+      P_trace[k] = p00;
+      K_trace[k] = k0;
+      innovations[k] = innov;
+      xStates[k] = [x0, x1];
+    }
   }
 
   return {
@@ -79,10 +94,8 @@ export function runKalmanFilter(measurements, dt, x0hat, P0_alpha, Q_diag, R) {
   };
 }
 
-/**
- * Steady-state covariance via iterative DARE recursion.
- */
-export function solveDARE_iterative(F, H, Q, R, maxIter = 500) {
+/** Steady-state P[0,0] via DARE (math.js, 80 iterations). */
+export function solveDARE_iterative(F, H, Q, R, maxIter = 80) {
   let P = identity(2);
   const Rm = matrix([[R]]);
 
@@ -97,7 +110,7 @@ export function solveDARE_iterative(F, H, Q, R, maxIter = 500) {
   return P.get([0, 0]);
 }
 
-export function solvePInfinity(dt, Q_diag, R, maxIter = 500) {
+export function solvePInfinity(dt, Q_diag, R, maxIter = 80) {
   const F = matrix([
     [1, dt],
     [0, 1],

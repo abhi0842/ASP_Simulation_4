@@ -1,3 +1,6 @@
+/** Cap sample rate for the challenge so filtering stays interactive. */
+export const ARRHYTHMIA_MAX_FS = 200;
+
 /**
  * 20-beat arrhythmia sequence (standalone — does not modify CSV / generation pipeline).
  */
@@ -25,6 +28,7 @@ export function extractBeatTemplate(cleanSignal, fs, beatDurationSec = 0.85) {
 }
 
 export function generateArrhythmiaSequence(templateBeat, fs) {
+  const effectiveFs = Math.min(fs, ARRHYTHMIA_MAX_FS);
   const segments = [
     { count: 8, bpm: 70 },
     { count: 4, bpm: 140 },
@@ -40,7 +44,7 @@ export function generateArrhythmiaSequence(templateBeat, fs) {
 
   for (const seg of segments) {
     const period = 60 / seg.bpm;
-    const beatSamples = Math.max(8, Math.round(period * fs));
+    const beatSamples = Math.max(8, Math.round(period * effectiveFs));
 
     for (let b = 0; b < seg.count; b++) {
       if (beatIndex === 8) onsetIdx = truth.length;
@@ -48,7 +52,7 @@ export function generateArrhythmiaSequence(templateBeat, fs) {
 
       const beat = resampleBeat(templateBeat, beatSamples);
       for (let i = 0; i < beat.length; i++) {
-        times.push(t + i / fs);
+        times.push(t + i / effectiveFs);
         truth.push(beat[i]);
       }
       t += period;
@@ -56,7 +60,13 @@ export function generateArrhythmiaSequence(templateBeat, fs) {
     }
   }
 
-  return { times, truth, onsetIdx: onsetIdx ?? 0, offsetIdx: offsetIdx ?? truth.length };
+  return {
+    times,
+    truth,
+    onsetIdx: onsetIdx ?? 0,
+    offsetIdx: offsetIdx ?? truth.length,
+    fs: effectiveFs,
+  };
 }
 
 export function addGaussianNoise(signal, R) {
