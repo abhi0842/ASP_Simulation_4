@@ -4,13 +4,15 @@ import { useKalmanSignals } from "../../../hooks/useKalmanSignals";
 import { fmt4, kalmanGainScalar } from "../../../utils/kalman";
 import { useChartJs } from "../../../hooks/useChartJs";
 import { PanelHeader } from "../PanelHeader";
-import { TheoryModal, getTheoryContent } from "../TheoryModal";
+import { TheoryModal } from "../TheoryModal";
+import { getTheoryContent } from "../kalmanTheory";
 import { COLORS } from "../kalmanColors";
 import styles from "../kalman.module.css";
 
 const N_SHOW = 100;
 
-export function GainInspectorPanel({ cleanSignal: _c, noisySignal: _n, dt: _dt }) {
+export function GainInspectorPanel(props) {
+  void props;
   const { kalmanParams, lastKalmanSlider } = useContext(SimulationContext);
   const { aligned, filterResult } = useKalmanSignals();
   const [selectedStep, setSelectedStep] = useState(0);

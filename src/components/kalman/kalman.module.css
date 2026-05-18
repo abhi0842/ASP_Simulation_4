@@ -182,13 +182,6 @@
   position: relative;
 }
 
-.chartBox canvas,
-.chartBoxSmall canvas,
-.recoveryChart canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
 .chartBoxSmall {
   height: 200px;
   position: relative;
@@ -331,6 +324,7 @@
   background: #f8f8f6;
   padding: 14px;
   border-radius: 8px;
+  color: #333;
   white-space: pre-wrap;
   margin-top: 12px;
 }
@@ -371,6 +365,7 @@
   border: 1px solid #ddd;
   padding: 8px;
   text-align: center;
+  color: #333;
 }
 
 .compareTable th {

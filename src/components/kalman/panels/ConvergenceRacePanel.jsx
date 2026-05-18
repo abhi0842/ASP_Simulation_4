@@ -9,7 +9,8 @@ import {
 } from "../../../utils/kalman";
 import { useChartJs } from "../../../hooks/useChartJs";
 import { PanelHeader } from "../PanelHeader";
-import { TheoryModal, getTheoryContent } from "../TheoryModal";
+import { TheoryModal } from "../TheoryModal";
+import { getTheoryContent } from "../kalmanTheory";
 import { COLORS } from "../kalmanColors";
 import styles from "../kalman.module.css";
 

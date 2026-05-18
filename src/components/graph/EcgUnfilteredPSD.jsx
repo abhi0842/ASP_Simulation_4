@@ -64,10 +64,9 @@ export const EcgUnfilteredPSD = () => {
       },
       y: {
         min: 0,
-        max: 2,
         title: {
           display: true,
-          text: "PSD(dB/Hz) x 10^3",
+          text: "PSD (V²/Hz)",
           font: {
             size: 13,
             weight: "bold",
