@@ -242,10 +242,22 @@ input[type="number"]:focus {
     background: #f8f8f6;
 }
 
-.scenario_green { border-color: #639922; }
-.scenario_red { border-color: #e24b4a; }
-.scenario_yellow { border-color: #ba7517; }
-.scenario_blue { border-color: #378add; }
+.scenario_green {
+  border-color: #639922;
+  background: #f0f7e8;
+}
+.scenario_red {
+  border-color: #e24b4a;
+  background: #ffe8e8;
+}
+.scenario_yellow {
+  border-color: #ba7517;
+  background: #fff5e8;
+}
+.scenario_blue {
+  border-color: #378add;
+  background: #e8f4ff;
+}
 
 @media (max-width: 768px) {
     .rightPanelContainer {

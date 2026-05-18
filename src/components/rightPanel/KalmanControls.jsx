@@ -26,7 +26,7 @@ export function KalmanControls() {
     setLastKalmanSlider,
   } = useContext(SimulationContext);
 
-  const [scenario, setScenario] = useState(null);
+  const [activeScenario, setActiveScenario] = useState(null);
   const { x0hat, P0_alpha, Q_diag, R, fsKalman } = kalmanParams;
 
   const trueFirstSample = useMemo(() => {
@@ -47,7 +47,7 @@ export function KalmanControls() {
     const preset = getScenarioPreset(key, trueFirstSample);
     if (!preset) return;
     setKalmanParams((p) => ({ ...p, ...preset }));
-    setScenario(key);
+    setActiveScenario(key);
   };
 
   if (!generateECG) {
@@ -62,7 +62,7 @@ export function KalmanControls() {
     );
   }
 
-  const scenarioMsg = scenario ? SCENARIO_MESSAGES[scenario] : null;
+  const scenarioMsg = activeScenario ? SCENARIO_MESSAGES[activeScenario] : null;
 
   return (
     <div className={styles.box}>
@@ -194,7 +194,9 @@ export function KalmanControls() {
       </div>
 
       {scenarioMsg && (
-        <p className={`${styles.scenarioNote} ${styles[`scenario_${scenarioMsg.tone}`]}`}>
+        <p
+          className={`${styles.scenarioNote} ${styles[`scenario_${scenarioMsg.tone}`]}`}
+        >
           {scenarioMsg.text}
         </p>
       )}

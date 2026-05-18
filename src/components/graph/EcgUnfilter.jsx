@@ -47,7 +47,6 @@ export const EcgUnfilter = () => {
   const data = useMemo(() => {
     if (!rawSamples.length || !generateECG) return [];
     const fsOriginal = inferFs(rawSamples);
-    console.log("fsOriginal", fsOriginal);
     const displayData = resampleForDisplay(rawSamples, fsOriginal, originalFs);
     return displayData.filter((p) => p.x <= time);
   }, [time, originalFs, generateECG, rawSamples]);

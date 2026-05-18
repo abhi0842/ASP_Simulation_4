@@ -1,7 +1,5 @@
-import { useContext, useMemo, useState, useRef, useEffect } from "react";
-import { Line } from "react-chartjs-2";
+import { useContext, useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { SimulationContext } from "../../../context/SimulationContext";
-import { useKalmanSignals } from "../../../hooks/useKalmanSignals";
 import {
   runKalmanFilter,
   solvePInfinity,
@@ -9,11 +7,11 @@ import {
   computeRMSE,
   fmt4,
 } from "../../../utils/kalman";
-import { TheoryModal } from "../TheoryModal";
-import { registerKalmanCharts, COLORS, baseChartOptions } from "../kalmanChartSetup";
+import { useChartJs } from "../../../hooks/useChartJs";
+import { PanelHeader } from "../PanelHeader";
+import { TheoryModal, getTheoryContent } from "../TheoryModal";
+import { COLORS } from "../kalmanColors";
 import styles from "../kalman.module.css";
-
-registerKalmanCharts();
 
 const P0_TRACES = [
   { label: "P₀ = 0.001", alpha: 0.001, color: COLORS.blue },
@@ -23,45 +21,59 @@ const P0_TRACES = [
 
 const RACE_STEPS = 200;
 
-export function ConvergenceRaceModule() {
-  const { generateECG, kalmanParams } = useContext(SimulationContext);
-  const { aligned, dt } = useKalmanSignals();
+export function ConvergenceRacePanel({
+  cleanSignal = [],
+  noisySignal = [],
+  dt = 0.002,
+}) {
+  const { kalmanParams } = useContext(SimulationContext);
   const [theoryOpen, setTheoryOpen] = useState(false);
   const [raceStep, setRaceStep] = useState(0);
   const [racing, setRacing] = useState(false);
   const timerRef = useRef(null);
 
   const raceData = useMemo(() => {
-    if (!aligned.hasData) return null;
-    const meas = aligned.measurements.slice(0, RACE_STEPS);
-    const truth = aligned.truth.slice(0, RACE_STEPS);
+    if (!noisySignal.length) return null;
+    const meas = noisySignal.slice(0, RACE_STEPS);
+    const truth = cleanSignal.slice(0, RACE_STEPS);
     const { Q_diag, R, x0hat } = kalmanParams;
     const P_inf = solvePInfinity(dt, Q_diag, R);
 
     const traces = P0_TRACES.map((t) => {
-      const res = runKalmanFilter(
-        meas,
-        dt,
-        x0hat,
-        t.alpha,
-        Q_diag,
-        R
-      );
-      const conv = computeTransientLength(res.P_trace, P_inf);
-      const peakRmse = computeRMSE(res.xFiltered, truth, 0, res.xFiltered.length);
-      return { ...t, P_trace: res.P_trace, conv, peakRmse };
+      const res = runKalmanFilter(meas, dt, x0hat, t.alpha, Q_diag, R);
+      return {
+        ...t,
+        P_trace: res.P_trace,
+        conv: computeTransientLength(res.P_trace, P_inf),
+        peakRmse: computeRMSE(res.xFiltered, truth, 0, res.xFiltered.length),
+      };
     });
 
     const warm = runKalmanFilter(meas, dt, x0hat, P_inf, Q_diag, R);
     const warmRmse = computeRMSE(warm.xFiltered, truth, 0, warm.xFiltered.length);
 
-    return { traces, P_inf, warmRmse, truth, meas };
-  }, [aligned, dt, kalmanParams]);
+    return { traces, P_inf, warmRmse };
+  }, [cleanSignal, noisySignal, dt, kalmanParams]);
 
   const startRace = () => {
     setRacing(true);
     setRaceStep(0);
   };
+
+  useEffect(() => {
+    if (!racing || !raceData) return undefined;
+    timerRef.current = setInterval(() => {
+      setRaceStep((s) => {
+        const next = s + 1;
+        if (next >= RACE_STEPS) {
+          clearInterval(timerRef.current);
+          setRacing(false);
+        }
+        return Math.min(next, RACE_STEPS);
+      });
+    }, 20);
+    return () => clearInterval(timerRef.current);
+  }, [racing, raceData]);
 
   const convergedAt = useMemo(() => {
     if (!raceData || raceStep === 0) return {};
@@ -78,27 +90,13 @@ export function ConvergenceRaceModule() {
     return out;
   }, [raceData, raceStep]);
 
-  useEffect(() => {
-    if (!racing || !raceData) return;
-    timerRef.current = setInterval(() => {
-      setRaceStep((s) => {
-        const next = s + 1;
-        if (next >= RACE_STEPS) {
-          clearInterval(timerRef.current);
-          setRacing(false);
-        }
-        return Math.min(next, RACE_STEPS);
-      });
-    }, 20);
-    return () => clearInterval(timerRef.current);
-  }, [racing, raceData]);
+  const limit = racing ? raceStep : RACE_STEPS;
 
-  const chartConfig = useMemo(() => {
+  const buildRaceChart = useCallback(() => {
     if (!raceData) return null;
     const { traces, P_inf } = raceData;
-    const limit = racing ? raceStep : RACE_STEPS;
-
     return {
+      type: "line",
       data: {
         datasets: [
           ...traces.map((t) => ({
@@ -110,10 +108,7 @@ export function ConvergenceRaceModule() {
           })),
           {
             label: "P∞ (steady state)",
-            data: Array.from({ length: limit }, (_, i) => ({
-              x: i,
-              y: P_inf,
-            })),
+            data: Array.from({ length: limit }, (_, i) => ({ x: i, y: P_inf })),
             borderColor: COLORS.gray,
             borderDash: [6, 4],
             borderWidth: 1,
@@ -122,13 +117,11 @@ export function ConvergenceRaceModule() {
         ],
       },
       options: {
-        ...baseChartOptions,
+        responsive: true,
+        maintainAspectRatio: false,
         animation: false,
         plugins: {
-          title: {
-            display: true,
-            text: "P_k[0,0] convergence race",
-          },
+          title: { display: true, text: "P_k[0,0] convergence race" },
         },
         scales: {
           x: {
@@ -144,7 +137,9 @@ export function ConvergenceRaceModule() {
         },
       },
     };
-  }, [raceData, raceStep, racing]);
+  }, [raceData, limit]);
+
+  const { canvasRef } = useChartJs(buildRaceChart, [raceData, limit]);
 
   const allConverged =
     raceData &&
@@ -152,7 +147,7 @@ export function ConvergenceRaceModule() {
     !racing &&
     raceStep >= RACE_STEPS;
 
-  if (!generateECG) {
+  if (!noisySignal.length) {
     return (
       <p className={styles.emptyHint}>
         Generate an ECG signal to run the convergence race.
@@ -161,17 +156,11 @@ export function ConvergenceRaceModule() {
   }
 
   return (
-    <>
-      <div className={styles.moduleHeader}>
-        <h3>Convergence Race</h3>
-        <button
-          type="button"
-          className={styles.theoryBtn}
-          onClick={() => setTheoryOpen(true)}
-        >
-          Theory Link
-        </button>
-      </div>
+    <div className={styles.panelRoot}>
+      <PanelHeader
+        title="Convergence Race"
+        onTheoryClick={() => setTheoryOpen(true)}
+      />
 
       <button
         type="button"
@@ -182,11 +171,9 @@ export function ConvergenceRaceModule() {
         Start Race
       </button>
 
-      {chartConfig && (
-        <div className={styles.chartBox} style={{ marginTop: 12 }}>
-          <Line data={chartConfig.data} options={chartConfig.options} />
-        </div>
-      )}
+      <div className={styles.chartBox}>
+        <canvas ref={canvasRef} />
+      </div>
 
       <div className={styles.raceBadges}>
         {P0_TRACES.map((t) =>
@@ -200,8 +187,8 @@ export function ConvergenceRaceModule() {
 
       {allConverged && raceData && (
         <p className={styles.raceSummary}>
-          All three reach the same P∞ = {fmt4(raceData.P_inf)}. P₀ only
-          controls the transient, not the destination.
+          All three reach the same P∞ = {fmt4(raceData.P_inf)}. P₀ only controls
+          the transient, not the destination.
         </p>
       )}
 
@@ -231,12 +218,11 @@ export function ConvergenceRaceModule() {
         </table>
       )}
 
-      {theoryOpen && (
-        <TheoryModal
-          theoryKey="convergenceRace"
-          onClose={() => setTheoryOpen(false)}
-        />
-      )}
-    </>
+      <TheoryModal
+        isOpen={theoryOpen}
+        onClose={() => setTheoryOpen(false)}
+        content={getTheoryContent("convergenceRace")}
+      />
+    </div>
   );
 }

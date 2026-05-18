@@ -14,7 +14,10 @@ h3 {
 
 .container {
     padding: 0 10px;
-    /* border-right: 1px solid #868585da; */
+}
+
+.ecgChartsBlock {
+    width: 100%;
 }
 
 .graphContainer {

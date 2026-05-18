@@ -1,21 +1,27 @@
 import { useContext, useMemo, useRef, useState, useEffect } from "react";
-import { Line } from "react-chartjs-2";
 import { SimulationContext } from "../../../context/SimulationContext";
 import { useKalmanSignals } from "../../../hooks/useKalmanSignals";
-import { buildFMatrix, predictStep, fmt4 } from "../../../utils/kalman";
-import { TheoryModal } from "../TheoryModal";
+import { useChartJs } from "../../../hooks/useChartJs";
+import { predictStep, fmt4 } from "../../../utils/kalman";
 import { createTimeCursorPlugin } from "../timeCursorPlugin";
-import { registerKalmanCharts, COLORS, baseChartOptions } from "../kalmanChartSetup";
+import { PanelHeader } from "../PanelHeader";
+import { TheoryModal } from "../TheoryModal";
+import { getTheoryContent } from "../kalmanTheory";
+import { COLORS } from "../kalmanColors";
 import styles from "../kalman.module.css";
-
-registerKalmanCharts();
 
 const FS_OPTIONS = [100, 250, 500];
 
-export function StateSpaceModule() {
-  const { generateECG, applyNoiseTrigger, setKalmanParams, kalmanParams } =
+export function StateSpacePanel({
+  cleanSignal = [],
+  noisySignal = [],
+  times = [],
+  dt: sampleDt,
+}) {
+  void sampleDt;
+  const { applyNoiseTrigger, setKalmanParams, kalmanParams } =
     useContext(SimulationContext);
-  const { aligned, filterResult } = useKalmanSignals();
+  const { filterResult } = useKalmanSignals();
   const [cursorIndex, setCursorIndex] = useState(0);
   const cursorRef = useRef(0);
   const [theoryOpen, setTheoryOpen] = useState(false);
@@ -29,19 +35,6 @@ export function StateSpaceModule() {
     cursorRef.current = cursorIndex;
   }, [cursorIndex]);
 
-  useEffect(() => {
-    if (!showPredict) {
-      setPredictLines(0);
-      return;
-    }
-    setPredictLines(0);
-    const timers = [];
-    for (let i = 1; i <= 5; i++) {
-      timers.push(setTimeout(() => setPredictLines(i), i * 300));
-    }
-    return () => timers.forEach(clearTimeout);
-  }, [showPredict, cursorIndex, fs]);
-
   const stateAtCursor = useMemo(() => {
     const states = filterResult?.xStates ?? [];
     const idx = Math.min(cursorIndex, Math.max(0, states.length - 1));
@@ -50,19 +43,19 @@ export function StateSpaceModule() {
   }, [filterResult, cursorIndex]);
 
   const pred = predictStep(stateAtCursor.amp, stateAtCursor.slope, dt);
-  const F = buildFMatrix(dt);
 
-  const chartConfig = useMemo(() => {
-    if (!aligned.hasData) return null;
-    const n = aligned.times.length;
-    const truthData = aligned.times.map((x, i) => ({ x, y: aligned.truth[i] }));
+  const chartDeps = [times, cleanSignal, noisySignal, applyNoiseTrigger, cursorIndex];
+
+  const buildChart = () => {
+    if (!times.length) return null;
+    const truthData = times.map((x, i) => ({ x, y: cleanSignal[i] }));
     const measureData = applyNoiseTrigger
-      ? aligned.times.map((x, i) => ({ x, y: aligned.measurements[i] }))
+      ? times.map((x, i) => ({ x, y: noisySignal[i] }))
       : truthData;
-
-    const plugin = createTimeCursorPlugin(cursorRef, setCursorIndex, n);
+    const plugin = createTimeCursorPlugin(cursorRef, setCursorIndex, times.length);
 
     return {
+      type: "line",
       data: {
         datasets: [
           {
@@ -83,13 +76,14 @@ export function StateSpaceModule() {
         ],
       },
       options: {
-        ...baseChartOptions,
+        responsive: true,
+        maintainAspectRatio: false,
         animation: false,
         plugins: {
           legend: { display: true },
           title: {
             display: true,
-            text: "Drag cursor on chart to inspect state",
+            text: "Drag or click chart to inspect state",
           },
         },
         scales: {
@@ -99,9 +93,11 @@ export function StateSpaceModule() {
       },
       plugins: [plugin],
     };
-  }, [aligned, applyNoiseTrigger]);
+  };
 
-  if (!generateECG) {
+  const { canvasRef } = useChartJs(buildChart, chartDeps);
+
+  if (!times.length) {
     return (
       <p className={styles.emptyHint}>
         Generate an ECG signal to explore state-space intuition.
@@ -110,17 +106,11 @@ export function StateSpaceModule() {
   }
 
   return (
-    <>
-      <div className={styles.moduleHeader}>
-        <h3>State-Space Intuition</h3>
-        <button
-          type="button"
-          className={styles.theoryBtn}
-          onClick={() => setTheoryOpen(true)}
-        >
-          Theory Link
-        </button>
-      </div>
+    <div className={styles.panelRoot}>
+      <PanelHeader
+        title="State-Space Intuition"
+        onTheoryClick={() => setTheoryOpen(true)}
+      />
 
       <div className={styles.stateCards}>
         <div className={styles.stateCard}>
@@ -133,15 +123,9 @@ export function StateSpaceModule() {
         </div>
       </div>
 
-      {chartConfig && (
-        <div className={styles.chartBox}>
-          <Line
-            data={chartConfig.data}
-            options={chartConfig.options}
-            plugins={chartConfig.plugins}
-          />
-        </div>
-      )}
+      <div className={styles.chartBox}>
+        <canvas ref={canvasRef} />
+      </div>
 
       <h4>F Matrix Visualizer</h4>
       <label>
@@ -149,10 +133,9 @@ export function StateSpaceModule() {
         <select
           className={styles.fsSelect}
           value={fs}
-          onChange={(e) => {
-            const v = Number(e.target.value);
-            setKalmanParams((p) => ({ ...p, fsKalman: v }));
-          }}
+          onChange={(e) =>
+            setKalmanParams((p) => ({ ...p, fsKalman: Number(e.target.value) }))
+          }
         >
           {FS_OPTIONS.map((hz) => (
             <option key={hz} value={hz}>
@@ -175,19 +158,25 @@ export function StateSpaceModule() {
       <button
         type="button"
         className={styles.primaryBtn}
-        style={{ marginTop: 12 }}
-        onClick={() => setShowPredict((s) => !s)}
+        onClick={() => {
+          const next = !showPredict;
+          setShowPredict(next);
+          if (!next) {
+            setPredictLines(0);
+            return;
+          }
+          setPredictLines(0);
+          [1, 2, 3, 4, 5].forEach((i) =>
+            setTimeout(() => setPredictLines(i), i * 300)
+          );
+        }}
       >
         Show Predict Step
       </button>
 
       {showPredict && (
         <div className={styles.predictBox}>
-          {predictLines >= 1 && (
-            <p className={styles.predictLine} style={{ animationDelay: "0ms" }}>
-              x̂_pred = F × x̂_k
-            </p>
-          )}
+          {predictLines >= 1 && <p className={styles.predictLine}>x̂_pred = F × x̂_k</p>}
           {predictLines >= 2 && (
             <p className={styles.predictLine}>
               {`[ x̂_pred[0] ]   [ 1   ${fmt4(dt)} ] [ ${fmt4(stateAtCursor.amp)} ]`}
@@ -199,21 +188,19 @@ export function StateSpaceModule() {
             </p>
           )}
           {predictLines >= 4 && (
-            <p className={styles.predictLine}>
-              {`= [ ${fmt4(pred[0])} ]`}
-            </p>
+            <p className={styles.predictLine}>{`= [ ${fmt4(pred[0])} ]`}</p>
           )}
           {predictLines >= 5 && (
-            <p className={styles.predictLine}>
-              {`= [ ${fmt4(pred[1])} ]`}
-            </p>
+            <p className={styles.predictLine}>{`= [ ${fmt4(pred[1])} ]`}</p>
           )}
         </div>
       )}
 
-      {theoryOpen && (
-        <TheoryModal theoryKey="stateSpace" onClose={() => setTheoryOpen(false)} />
-      )}
-    </>
+      <TheoryModal
+        isOpen={theoryOpen}
+        onClose={() => setTheoryOpen(false)}
+        content={getTheoryContent("stateSpace")}
+      />
+    </div>
   );
 }

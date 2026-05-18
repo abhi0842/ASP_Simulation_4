@@ -1,36 +1,55 @@
-.kalmanPanel {
+.kalmanTabsRoot {
   width: 100%;
-  margin: 24px 0 32px;
-  padding: 16px;
-  background: #fff;
-  border: 1px solid #dadada;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(94, 94, 94, 0.15);
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 2px solid #e8e8e4;
 }
 
 .tabBar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-wrap: nowrap;
+  gap: 4px;
   margin-bottom: 16px;
   border-bottom: 2px solid #e8e8e4;
-  padding-bottom: 8px;
+  padding-bottom: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tabBtn {
-  padding: 8px 14px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #f5f5f2;
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  background: transparent;
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 500;
+  color: #444;
+  white-space: nowrap;
 }
 
 .tabBtnActive {
-  background: #1a5376;
-  color: #fff;
-  border-color: #1a5376;
+  background: #f0faf6;
+  color: #1d9e75;
+  border-bottom: 3px solid #1d9e75;
+  font-weight: 700;
+}
+
+.tabContent {
+  min-height: 120px;
+}
+
+.panelRoot {
+  width: 100%;
+}
+
+.chartsOnlyCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
 }
 
 .moduleHeader {
@@ -131,10 +150,25 @@
   background: #f8f8f6;
 }
 
-.scenarioCardGreen { border-color: #639922; }
-.scenarioCardRed { border-color: #e24b4a; }
-.scenarioCardYellow { border-color: #ba7517; }
-.scenarioCardBlue { border-color: #378add; }
+.scenarioCardGreen {
+  border-color: #639922;
+  background: #f0f7e8;
+}
+
+.scenarioCardRed {
+  border-color: #e24b4a;
+  background: #ffe8e8;
+}
+
+.scenarioCardYellow {
+  border-color: #ba7517;
+  background: #fff5e8;
+}
+
+.scenarioCardBlue {
+  border-color: #378add;
+  background: #e8f4ff;
+}
 
 .chartsCol {
   display: flex;
@@ -146,6 +180,13 @@
 .chartBox {
   height: 280px;
   position: relative;
+}
+
+.chartBox canvas,
+.chartBoxSmall canvas,
+.recoveryChart canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .chartBoxSmall {

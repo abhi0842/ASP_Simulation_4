@@ -1,25 +1,40 @@
-import { useState } from "react";
-import { StateSpaceModule } from "./modules/StateSpaceModule";
-import { InitialConditionsModule } from "./modules/InitialConditionsModule";
-import { GainInspectorModule } from "./modules/GainInspectorModule";
-import { ConvergenceRaceModule } from "./modules/ConvergenceRaceModule";
-import { ArrhythmiaModule } from "./modules/ArrhythmiaModule";
+import { useContext, useMemo, useState } from "react";
+import { SimulationContext } from "../../context/SimulationContext";
+import { useKalmanSignals } from "../../hooks/useKalmanSignals";
+import { StateSpacePanel } from "./panels/StateSpacePanel";
+import { InitialConditionsPanel } from "./panels/InitialConditionsPanel";
+import { GainInspectorPanel } from "./panels/GainInspectorPanel";
+import { ConvergenceRacePanel } from "./panels/ConvergenceRacePanel";
+import { ArrhythmiaPanel } from "./panels/ArrhythmiaPanel";
 import styles from "./kalman.module.css";
 
 const TABS = [
   { id: "stateSpace", label: "State Space" },
-  { id: "initial", label: "Initial Conditions ★" },
-  { id: "gain", label: "Gain Inspector" },
-  { id: "race", label: "Convergence Race" },
+  { id: "initialConditions", label: "Initial Conditions ★" },
+  { id: "gainInspector", label: "Gain Inspector" },
+  { id: "convergenceRace", label: "Convergence Race" },
   { id: "arrhythmia", label: "Arrhythmia Challenge" },
 ];
 
 export function KalmanLearningPanel() {
-  const [activeTab, setActiveTab] = useState("initial");
+  const [activeTab, setActiveTab] = useState("initialConditions");
+  const { generateECG, cleanSignal: rawCleanSignal } = useContext(SimulationContext);
+  const { aligned, dt } = useKalmanSignals();
+
+  const panelProps = useMemo(
+    () => ({
+      cleanSignal: aligned.truth,
+      noisySignal: aligned.measurements,
+      times: aligned.times,
+      dt,
+    }),
+    [aligned.truth, aligned.measurements, aligned.times, dt]
+  );
+
+  if (!generateECG) return null;
 
   return (
-    <section className={styles.kalmanPanel}>
-      <h2>Kalman Filter Learning Modules</h2>
+    <section className={styles.kalmanTabsRoot} aria-label="Kalman learning modules">
       <nav className={styles.tabBar} role="tablist">
         {TABS.map((tab) => (
           <button
@@ -37,12 +52,18 @@ export function KalmanLearningPanel() {
         ))}
       </nav>
 
-      <div role="tabpanel">
-        {activeTab === "stateSpace" && <StateSpaceModule />}
-        {activeTab === "initial" && <InitialConditionsModule />}
-        {activeTab === "gain" && <GainInspectorModule />}
-        {activeTab === "race" && <ConvergenceRaceModule />}
-        {activeTab === "arrhythmia" && <ArrhythmiaModule />}
+      <div className={styles.tabContent} role="tabpanel">
+        {activeTab === "stateSpace" && <StateSpacePanel {...panelProps} />}
+        {activeTab === "initialConditions" && (
+          <InitialConditionsPanel {...panelProps} />
+        )}
+        {activeTab === "gainInspector" && <GainInspectorPanel {...panelProps} />}
+        {activeTab === "convergenceRace" && (
+          <ConvergenceRacePanel {...panelProps} />
+        )}
+        {activeTab === "arrhythmia" && (
+          <ArrhythmiaPanel cleanSignal={rawCleanSignal} dt={panelProps.dt} />
+        )}
       </div>
     </section>
   );

@@ -1,12 +1,6 @@
-import {
-  matrix,
-  multiply,
-  add,
-  subtract,
-  inv,
-  transpose,
-  identity,
-} from "mathjs";
+import * as math from "mathjs";
+
+const { matrix, multiply, add, subtract, inv, transpose, identity } = math;
 
 const fmt4 = (v) => (Number.isFinite(v) ? Number(v).toFixed(4) : "—");
 

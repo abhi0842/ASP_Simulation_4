@@ -10,10 +10,9 @@ export function createTimeCursorPlugin(cursorIndexRef, setCursorIndex, dataLen) 
       const xScale = chart.scales.x;
       if (!xScale) return;
 
-      const isDrag =
-        e.type === "mousemove" && (e.native?.buttons === 1 || args.inChartArea);
       const isClick = e.type === "click";
-      if (isDrag || isClick) {
+      const isDrag = e.type === "mousemove" && e.native?.buttons === 1;
+      if (isClick || isDrag) {
         const x = xScale.getValueForPixel(e.x);
         const ds = chart.data.datasets[0]?.data;
         if (!ds?.length) return;

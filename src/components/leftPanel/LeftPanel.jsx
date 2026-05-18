@@ -11,19 +11,23 @@ import { KalmanLearningPanel } from "../kalman/KalmanLearningPanel.jsx";
 export const LeftPanel = () => {
   const { generateECG, applyNoiseTrigger, filteredECG, applypsdTrigger } =
     useContext(SimulationContext);
+
   return (
     <div className={styles.leftPanelContainer}>
       <div className={styles.container}>
-        <div className={styles.psdContainer}>
-          {applypsdTrigger && <EcgUnfilteredPSD />}
-          {applypsdTrigger && <EcgFilteredPSD />}
+        <div className={styles.ecgChartsBlock}>
+          {applypsdTrigger && (
+            <div className={styles.psdContainer}>
+              <EcgUnfilteredPSD />
+              {filteredECG && <EcgFilteredPSD />}
+            </div>
+          )}
+          {generateECG && <EcgUnfilter />}
+          {applyNoiseTrigger && <EcgNoisy />}
+          {filteredECG && <EcgFilter />}
         </div>
-        <div>{generateECG && <EcgUnfilter />}</div>
-        <div>{applyNoiseTrigger && <EcgNoisy />}</div>
-        <div>{filteredECG && <EcgFilter />}</div>
         {generateECG && <KalmanLearningPanel />}
       </div>
     </div>
   );
 };
-
