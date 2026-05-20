@@ -9,8 +9,6 @@ import {
 } from "../../../utils/kalman";
 import { useChartJs } from "../../../hooks/useChartJs";
 import { PanelHeader } from "../PanelHeader";
-import { TheoryModal } from "../TheoryModal";
-import { getTheoryContent } from "../kalmanTheory";
 import { COLORS } from "../kalmanColors";
 import styles from "../kalman.module.css";
 
@@ -28,7 +26,6 @@ export function ConvergenceRacePanel({
   dt = 0.002,
 }) {
   const { kalmanParams } = useContext(SimulationContext);
-  const [theoryOpen, setTheoryOpen] = useState(false);
   const [raceStep, setRaceStep] = useState(0);
   const [racing, setRacing] = useState(false);
   const timerRef = useRef(null);
@@ -158,10 +155,7 @@ export function ConvergenceRacePanel({
 
   return (
     <div className={styles.panelRoot}>
-      <PanelHeader
-        title="Convergence Race"
-        onTheoryClick={() => setTheoryOpen(true)}
-      />
+      <PanelHeader title="Convergence Race" />
 
       <button
         type="button"
@@ -219,11 +213,6 @@ export function ConvergenceRacePanel({
         </table>
       )}
 
-      <TheoryModal
-        isOpen={theoryOpen}
-        onClose={() => setTheoryOpen(false)}
-        content={getTheoryContent("convergenceRace")}
-      />
     </div>
   );
 }

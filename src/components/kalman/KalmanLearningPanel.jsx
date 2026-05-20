@@ -6,11 +6,15 @@ import { InitialConditionsPanel } from "./panels/InitialConditionsPanel";
 import { GainInspectorPanel } from "./panels/GainInspectorPanel";
 import { ConvergenceRacePanel } from "./panels/ConvergenceRacePanel";
 import { ArrhythmiaPanel } from "./panels/ArrhythmiaPanel";
+import { ComparisonPanel } from "./panels/ComparisonPanel";
+import { CommonMistakesPanel } from "./panels/CommonMistakesPanel";
 import styles from "./kalman.module.css";
 
 const TABS = [
   { id: "stateSpace", label: "State Space" },
   { id: "initialConditions", label: "Initial Conditions ★" },
+  { id: "comparison", label: "Comparison" },
+  { id: "commonMistakes", label: "Common Mistakes" },
   { id: "gainInspector", label: "Gain Inspector" },
   { id: "convergenceRace", label: "Convergence Race" },
   { id: "arrhythmia", label: "Arrhythmia Challenge" },
@@ -56,6 +60,10 @@ export function KalmanLearningPanel() {
         {activeTab === "stateSpace" && <StateSpacePanel {...panelProps} />}
         {activeTab === "initialConditions" && (
           <InitialConditionsPanel {...panelProps} />
+        )}
+        {activeTab === "comparison" && <ComparisonPanel {...panelProps} />}
+        {activeTab === "commonMistakes" && (
+          <CommonMistakesPanel onNavigateTab={setActiveTab} />
         )}
         {activeTab === "gainInspector" && <GainInspectorPanel {...panelProps} />}
         {activeTab === "convergenceRace" && (

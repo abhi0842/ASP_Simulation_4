@@ -3,6 +3,7 @@ import { SimulationContext } from "../../context/SimulationContext";
 import styles from "./rightPanel.module.css";
 import Swal from "sweetalert2";
 import { KalmanControls } from "./KalmanControls.jsx";
+import { ClinicalContextPanel } from "./ClinicalContextPanel.jsx";
 
 export const RightPanel = () => {
   const {
@@ -154,6 +155,8 @@ export const RightPanel = () => {
         </div>
 
         <KalmanControls />
+
+        {generateECG && <ClinicalContextPanel />}
 
         <div className={styles.box}>
           <h3>PSD Analysis</h3>

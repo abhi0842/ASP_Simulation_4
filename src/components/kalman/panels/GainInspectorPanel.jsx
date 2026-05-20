@@ -4,8 +4,6 @@ import { useKalmanSignals } from "../../../hooks/useKalmanSignals";
 import { fmt4, kalmanGainScalar } from "../../../utils/kalman";
 import { useChartJs } from "../../../hooks/useChartJs";
 import { PanelHeader } from "../PanelHeader";
-import { TheoryModal } from "../TheoryModal";
-import { getTheoryContent } from "../kalmanTheory";
 import { COLORS } from "../kalmanColors";
 import styles from "../kalman.module.css";
 
@@ -16,7 +14,6 @@ export function GainInspectorPanel(props) {
   const { kalmanParams, lastKalmanSlider } = useContext(SimulationContext);
   const { aligned, filterResult } = useKalmanSignals();
   const [selectedStep, setSelectedStep] = useState(0);
-  const [theoryOpen, setTheoryOpen] = useState(false);
   const { R } = kalmanParams;
 
   const buildBarChart = useCallback(() => {
@@ -94,10 +91,7 @@ State correction = K × innovation = ${fmt4(K * innov)}`;
 
   return (
     <div className={styles.panelRoot}>
-      <PanelHeader
-        title="Kalman Gain Inspector"
-        onTheoryClick={() => setTheoryOpen(true)}
-      />
+      <PanelHeader title="Kalman Gain Inspector" />
 
       <p className={styles.hintText}>
         Adjust R and Q in the right-panel Kalman section. Click a bar for step
@@ -125,12 +119,6 @@ State correction = K × innovation = ${fmt4(K * innov)}`;
       </p>
 
       <pre className={styles.stepDetail}>{stepDetail}</pre>
-
-      <TheoryModal
-        isOpen={theoryOpen}
-        onClose={() => setTheoryOpen(false)}
-        content={getTheoryContent("gainInspector")}
-      />
     </div>
   );
 }

@@ -5,8 +5,6 @@ import { useChartJs } from "../../../hooks/useChartJs";
 import { predictStep, fmt4 } from "../../../utils/kalman";
 import { createTimeCursorPlugin } from "../timeCursorPlugin";
 import { PanelHeader } from "../PanelHeader";
-import { TheoryModal } from "../TheoryModal";
-import { getTheoryContent } from "../kalmanTheory";
 import { COLORS } from "../kalmanColors";
 import styles from "../kalman.module.css";
 
@@ -24,7 +22,6 @@ export function StateSpacePanel({
   const { filterResult } = useKalmanSignals();
   const [cursorIndex, setCursorIndex] = useState(0);
   const cursorRef = useRef(0);
-  const [theoryOpen, setTheoryOpen] = useState(false);
   const [showPredict, setShowPredict] = useState(false);
   const [predictLines, setPredictLines] = useState(0);
 
@@ -107,10 +104,7 @@ export function StateSpacePanel({
 
   return (
     <div className={styles.panelRoot}>
-      <PanelHeader
-        title="State-Space Intuition"
-        onTheoryClick={() => setTheoryOpen(true)}
-      />
+      <PanelHeader title="State-Space Intuition" />
 
       <div className={styles.stateCards}>
         <div className={styles.stateCard}>
@@ -196,11 +190,6 @@ export function StateSpacePanel({
         </div>
       )}
 
-      <TheoryModal
-        isOpen={theoryOpen}
-        onClose={() => setTheoryOpen(false)}
-        content={getTheoryContent("stateSpace")}
-      />
     </div>
   );
 }

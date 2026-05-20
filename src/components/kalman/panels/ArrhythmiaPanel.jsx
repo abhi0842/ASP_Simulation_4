@@ -12,8 +12,6 @@ import {
 } from "../../../utils/arrhythmiaEcg";
 import { useChartJs } from "../../../hooks/useChartJs";
 import { PanelHeader } from "../PanelHeader";
-import { TheoryModal } from "../TheoryModal";
-import { getTheoryContent } from "../kalmanTheory";
 import { COLORS } from "../kalmanColors";
 import styles from "../kalman.module.css";
 
@@ -56,7 +54,6 @@ function arrhythmiaLinesPlugin(onsetTime, offsetTime) {
 
 export function ArrhythmiaPanel({ cleanSignal = [], dt = 0.002 }) {
   const { originalFs, kalmanParams } = useContext(SimulationContext);
-  const [theoryOpen, setTheoryOpen] = useState(false);
   const [studentRun, setStudentRun] = useState(false);
   const [measurements, setMeasurements] = useState([]);
 
@@ -221,10 +218,7 @@ export function ArrhythmiaPanel({ cleanSignal = [], dt = 0.002 }) {
 
   return (
     <div className={styles.panelRoot}>
-      <PanelHeader
-        title="Arrhythmia Tracking Challenge"
-        onTheoryClick={() => setTheoryOpen(true)}
-      />
+      <PanelHeader title="Arrhythmia Tracking Challenge" />
 
       <p className={styles.hintText}>
         Beats 1–8: 70 BPM · Beats 9–12: 140 BPM (tachycardia) · Beats 13–20: 70
@@ -253,11 +247,6 @@ export function ArrhythmiaPanel({ cleanSignal = [], dt = 0.002 }) {
         </div>
       )}
 
-      <TheoryModal
-        isOpen={theoryOpen}
-        onClose={() => setTheoryOpen(false)}
-        content={getTheoryContent("arrhythmia")}
-      />
     </div>
   );
 }

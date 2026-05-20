@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import { SimulationContext } from "../../../context/SimulationContext";
 import {
   runKalmanFilter,
@@ -8,9 +8,9 @@ import {
   convergenceBadge,
 } from "../../../utils/kalman";
 import { ChartCanvas } from "../ChartCanvas";
-import { PanelHeader } from "../PanelHeader";
-import { TheoryModal } from "../TheoryModal";
-import { getTheoryContent } from "../kalmanTheory";
+import { KDerivationPanel } from "../KDerivationPanel";
+import { createRiskWindowPlugin } from "../riskWindowPlugin";
+import { SensitivityChart } from "./SensitivityChart";
 import { COLORS } from "../kalmanColors";
 import styles from "../kalman.module.css";
 
@@ -26,7 +26,8 @@ export function InitialConditionsPanel({
   dt = 0.002,
 }) {
   const { applyNoiseTrigger, kalmanParams } = useContext(SimulationContext);
-  const [theoryOpen, setTheoryOpen] = useState(false);
+  const { P0_alpha, R } = kalmanParams;
+  const showRiskWindow = P0_alpha < 1;
 
   const filterResult = useMemo(() => {
     if (!cleanSignal.length || !noisySignal.length) return null;
@@ -52,12 +53,26 @@ export function InitialConditionsPanel({
     return { transient, earlyRmse, lateRmse, badge: convergenceBadge(transient) };
   }, [filterResult, cleanSignal]);
 
+  const riskPlugin = useMemo(
+    () =>
+      createRiskWindowPlugin(
+        times,
+        filterResult?.P_trace,
+        filterResult?.P_inf,
+        showRiskWindow
+      ),
+    [times, filterResult?.P_trace, filterResult?.P_inf, showRiskWindow]
+  );
+
   const signalChartDeps = [
     times,
     cleanSignal,
     noisySignal,
     filterResult?.xFiltered,
+    filterResult?.P_trace,
+    filterResult?.P_inf,
     applyNoiseTrigger,
+    showRiskWindow,
   ];
 
   const buildSignalChart = () => {
@@ -114,6 +129,7 @@ export function InitialConditionsPanel({
         },
         scales: baseScales,
       },
+      plugins: [riskPlugin],
     };
   };
 
@@ -189,10 +205,9 @@ export function InitialConditionsPanel({
 
   return (
     <div className={styles.panelRoot}>
-      <PanelHeader
-        title="Initial Conditions Experiment ★"
-        onTheoryClick={() => setTheoryOpen(true)}
-      />
+      <h3 className={styles.panelTitle}>Initial Conditions Experiment ★</h3>
+
+      <KDerivationPanel P0_alpha={P0_alpha} R={R} />
 
       {!applyNoiseTrigger && (
         <p className={styles.hintText}>
@@ -240,13 +255,13 @@ export function InitialConditionsPanel({
           deps={uncertaintyDeps}
           className={styles.chartBoxSmall}
         />
-      </div>
 
-      <TheoryModal
-        isOpen={theoryOpen}
-        onClose={() => setTheoryOpen(false)}
-        content={getTheoryContent("initialConditions")}
-      />
+        <SensitivityChart
+          cleanSignal={cleanSignal}
+          noisySignal={noisySignal}
+          dt={dt}
+        />
+      </div>
     </div>
   );
 }
