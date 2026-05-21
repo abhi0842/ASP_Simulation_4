@@ -1006,9 +1006,9 @@ Late RMSE = 0.035 (eventually recovers like everyone else)
 
 **Student Learns:**
 ```
-❌ "Wrong + Confident is the WORST case"
-❌ "The danger of false confidence"
-❌ "Early RMSE shows real cost: 2× worse than C"
+ "Wrong + Confident is the WORST case"
+ "The danger of false confidence"
+ "Early RMSE shows real cost: 2× worse than C"
 ```
 
 **Message:** "Slow convergence — persistent bias early on. Most dangerous configuration."

@@ -6,14 +6,14 @@ A theoretical treatment of how the initial conditions **x̂₀** and **P₀** go
 
 ## Table of Contents
 
-1. [Introduction and Motivation](#1-introduction-and-motivation)
-2. [System Model and Initial Conditions](#2-system-model-and-initial-conditions)
-3. [The Role of P₀: Uncertainty Encoding](#3-the-role-of-p-uncertainty-encoding-and-its-consequences)
-4. [The Role of x̂₀: Initial Bias and Its Propagation](#4-the-role-of-x̂-initial-bias-and-its-propagation)
-5. [Steady-State Analysis: The Discrete Algebraic Riccati Equation](#5-steady-state-analysis-the-discrete-algebraic-riccati-equation)
-6. [Information-Theoretic Interpretation](#6-information-theoretic-interpretation)
-7. [Summary of the Correspondence](#7-summary-of-the-correspondence)
-8. [References](#references)
+1. [Introduction and Motivation](
+2. [System Model and Initial Conditions]
+3. [The Role of P₀: Uncertainty Encoding]
+4. [The Role of x̂₀: Initial Bias and Its Propagation]
+5. [Steady-State Analysis: The Discrete Algebraic Riccati Equation]
+6. [Information-Theoretic Interpretation]
+7. [Summary of the Correspondence]
+8. [References]
 
 ---
 
