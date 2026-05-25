@@ -38,7 +38,7 @@ Together these encode the filter's prior belief about the system state before an
 
 ### 2.1 State-Space Formulation
 
-Consider a linear discrete-time stochastic system:
+Consider a linear discrete-time stochastic system(System that changes randomly):
 
 **State equation:**
 ```
